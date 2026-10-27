@@ -149,10 +149,10 @@ class ContextDecisionMaking(TrialEnv):
           context = self.rng.choice(self.contexts)
 
         choice_1, choice_2 = ground_truth, other_choice # mod1 is rel
-        rel_mod == 0
+        rel_mod = 0
         if context == 1: #mod2 is rel
           choice_1, choice_2 = choice_2, choice_1
-          rel_mod == 1
+          rel_mod = 1
 
 
         if ('mod1_mode' == 'categorical') or ('mod1_mode' == 'graded_relevant' and rel_mod == 1):
@@ -167,7 +167,7 @@ class ContextDecisionMaking(TrialEnv):
         # elif 'mod2_mode' = 'absent':
         # coh_2 = 0
         else:
-          coh_2: self.rng.choice(self.cohs_graded)
+          coh_2 = self.rng.choice(self.cohs_graded)
 
         trial = {
             "ground_truth": ground_truth,
