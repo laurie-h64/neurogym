@@ -6,7 +6,6 @@ from neurogym.core import TrialEnv
 from neurogym.utils import spaces
 from neurogym.utils.ngym_random import TruncExp
 
-
 class ContextDecisionMaking(TrialEnv):
     """Context-dependent decision-making task.
 
@@ -46,6 +45,9 @@ class ContextDecisionMaking(TrialEnv):
 
     def __init__(
         self,
+        context_mode: str = 'random',
+        mod1_mode: str = 'graded',
+        mod2_mode: str = 'graded',
         dt: int = 100,
         use_expl_context: bool = False,
         impl_context_modality: int = 0,
@@ -64,9 +66,12 @@ class ContextDecisionMaking(TrialEnv):
         self.sigma = sigma / np.sqrt(self.dt)
 
         # Trial conditions and spaces setup
-        self.cohs: list[int] = [5, 15, 50]
+        self.cohs_graded: list[int] = [5, 15, 50]
+        self.cohs_categorical: list[int] = [0,100]
         if use_expl_context:
             self.contexts: list[int] = [0, 1]
+            if context_mode == 'fixed':
+              self.context = self.rng.choice(self.contexts)
         else:
             if impl_context_modality not in [0, 1]:
                 msg = "impl_context_modality must be 0 or 1 when `use_expl_context` is False."
@@ -135,19 +140,43 @@ class ContextDecisionMaking(TrialEnv):
             dict: Trial information
         """
         # Trial parameters
+        ground_truth = self.rng.choice(self.choices)
+        other_choice = self.rng.choice(self.choices)
+
+        if 'context_mode' == 'fixed':
+          context = self.context
+        else:
+          context = self.rng.choice(self.contexts)
+
+        choice_1, choice_2 = ground_truth, other_choice # mod1 is rel
+        rel_mod == 0
+        if context == 1: #mod2 is rel
+          choice_1, choice_2 = choice_2, choice_1
+          rel_mod == 1
+
+
+        if ('mod1_mode' == 'categorical') or ('mod1_mode' == 'graded_relevant' and rel_mod == 1):
+          coh_1 = self.rng.choice(self.cohs_cat)
+        #elif 'mod1_mode' == 'absent':
+        # coh_1 = 0
+        else:
+          coh_1 = self.rng.choice(self.cohs_graded)
+
+        if ('mod2_mode' == 'categorical') or ('mod2_mode' == 'graded_relevant' and rel_mod == 0):
+          coh_2 = self.rng.choice(self.cohs_cat)
+        # elif 'mod2_mode' = 'absent':
+        # coh_2 = 0
+        else:
+          coh_2: self.rng.choice(self.cohs_graded)
+
         trial = {
-            "ground_truth": self.rng.choice(self.choices),
-            "other_choice": self.rng.choice(self.choices),
-            "context": self.rng.choice(self.contexts),
-            "coh_1": self.rng.choice(self.cohs),
-            "coh_2": self.rng.choice(self.cohs),
+            "ground_truth": ground_truth,
+            "other_choice": other_choice,
+            "context": context,
+            "coh_1": coh_1,
+            "coh_2": coh_2,
         }
         trial.update(kwargs)
-
-        choice_1, choice_2 = trial["ground_truth"], trial["other_choice"]
-        if trial["context"] == 1:
-            choice_2, choice_1 = choice_1, choice_2
-        coh_1, coh_2 = trial["coh_1"], trial["coh_2"]
 
         # Add periods
         periods = ["fixation", "stimulus", "delay", "decision"]
@@ -174,6 +203,14 @@ class ContextDecisionMaking(TrialEnv):
 
         stim_mod1 = np.cos(self.theta - stim_theta_1) * (coh_1 / 200) + 0.5
         stim_mod2 = np.cos(self.theta - stim_theta_2) * (coh_2 / 200) + 0.5
+
+        #if 'mod1_mode' == 'absent':
+        # stim_theta_1 = 0.0
+        # stim_mod1 = 0.0
+
+        #if 'mod2_mode' == 'absent':
+        # stim_theta_2 = 0.0
+        # stim_mod2 = 0.0
 
         # Add observations for each index
         for i in range(self.dim_ring):
