@@ -64,13 +64,16 @@ class ContextDecisionMaking(TrialEnv):
         self.use_expl_context = use_expl_context
         self.dim_ring = dim_ring
         self.sigma = sigma / np.sqrt(self.dt)
+        self.context_mode = context_mode
+        self.mod1_mode = mod1_mode
+        self.mod2_mode = mod2_mode
 
         # Trial conditions and spaces setup
         self.cohs_graded: list[int] = [5, 15, 50]
         self.cohs_categorical: list[int] = [0,100]
         if use_expl_context:
             self.contexts: list[int] = [0, 1]
-            if context_mode == 'fixed':
+            if self.context_mode == 'fixed':
               self.context = self.rng.choice(self.contexts)
         else:
             if impl_context_modality not in [0, 1]:
@@ -143,7 +146,7 @@ class ContextDecisionMaking(TrialEnv):
         ground_truth = self.rng.choice(self.choices)
         other_choice = self.rng.choice(self.choices)
 
-        if 'context_mode' == 'fixed':
+        if self.context_mode == 'fixed':
           context = self.context
         else:
           context = self.rng.choice(self.contexts)
@@ -155,16 +158,16 @@ class ContextDecisionMaking(TrialEnv):
           self.rel_mod = 1
 
 
-        if ('mod1_mode' == 'categorical') or ('mod1_mode' == 'graded_relevant' and self.rel_mod == 1):
+        if (self.mod1_mode == 'categorical') or (self.mod1_mode == 'graded_relevant' and self.rel_mod == 1):
           coh_1 = self.rng.choice(self.cohs_cat)
-        #elif 'mod1_mode' == 'absent':
+        #elif self.mod1_mode == 'absent':
         # coh_1 = 0
         else:
           coh_1 = self.rng.choice(self.cohs_graded)
 
-        if ('mod2_mode' == 'categorical') or ('mod2_mode' == 'graded_relevant' and self.rel_mod == 0):
+        if (self.mod2_mode == 'categorical') or (self.mod2_mode == 'graded_relevant' and self.rel_mod == 0):
           coh_2 = self.rng.choice(self.cohs_cat)
-        # elif 'mod2_mode' = 'absent':
+        # elif self.mod2_mode == 'absent':
         # coh_2 = 0
         else:
           coh_2 = self.rng.choice(self.cohs_graded)
@@ -204,11 +207,11 @@ class ContextDecisionMaking(TrialEnv):
         stim_mod1 = np.cos(self.theta - stim_theta_1) * (coh_1 / 200) + 0.5
         stim_mod2 = np.cos(self.theta - stim_theta_2) * (coh_2 / 200) + 0.5
 
-        #if 'mod1_mode' == 'absent':
+        #if self.mod1_mode == 'absent':
         # stim_theta_1 = 0.0
         # stim_mod1 = 0.0
 
-        #if 'mod2_mode' == 'absent':
+        #if self.mod2_mode == 'absent':
         # stim_theta_2 = 0.0
         # stim_mod2 = 0.0
 
