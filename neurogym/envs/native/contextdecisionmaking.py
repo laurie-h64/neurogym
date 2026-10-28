@@ -159,14 +159,14 @@ class ContextDecisionMaking(TrialEnv):
 
 
         if (self.mod1_mode == 'categorical') or (self.mod1_mode == 'graded_relevant' and self.rel_mod == 1):
-          coh_1 = self.rng.choice(self.cohs_cat)
+          coh_1 = self.rng.choice(self.cohs_categorical)
         #elif self.mod1_mode == 'absent':
         # coh_1 = 0
         else:
           coh_1 = self.rng.choice(self.cohs_graded)
 
         if (self.mod2_mode == 'categorical') or (self.mod2_mode == 'graded_relevant' and self.rel_mod == 0):
-          coh_2 = self.rng.choice(self.cohs_cat)
+          coh_2 = self.rng.choice(self.cohs_categorical)
         # elif self.mod2_mode == 'absent':
         # coh_2 = 0
         else:
