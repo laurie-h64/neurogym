@@ -45,7 +45,9 @@ class ContextDecisionMaking(TrialEnv):
 
     def __init__(
         self,
-        configuration: dict[str, str] | None = None,
+        context_mode: str = 'random',
+        mod1_mode: str = 'graded',
+        mod2_mode: str = 'random',
         relevant_modality: int = 0,
         dt: int = 100,
         use_expl_context: bool = False,
@@ -59,17 +61,9 @@ class ContextDecisionMaking(TrialEnv):
 
 
         # Configuration
-        self.configuration = dict[str, str] = {
-            'context_mode': 'random',
-            'mod1_mode': 'graded',
-            'mod2_mode': 'graded',
-            }
-        if configuration:
-            self.configuration.update(configuration)
-
-        self.context_mode = self.configuration['context_mode']
-        self.mod1_mode = self.configuration['mod1_mode']
-        self.mod2_mode = self.configuration['mod2_mode']
+        self.context_mode = context_mode
+        self.mod1_mode = mod1_mode
+        self.mod2_mode = mod2_mode
 
         # Specified relevant modality
         if relevant_modality not in [0, 1]:
