@@ -45,12 +45,10 @@ class ContextDecisionMaking(TrialEnv):
 
     def __init__(
         self,
-        context_mode: str = 'random',
-        mod1_mode: str = 'graded',
-        mod2_mode: str = 'graded',
+        configuration: dict[str, str] | None = None,
+        relevant_modality: int = 0,
         dt: int = 100,
         use_expl_context: bool = False,
-        impl_context_modality: int = 0,
         dim_ring: int = 2,
         rewards: dict[str, float] | None = None,
         timing: dict[str, int | TruncExp] | None = None,
@@ -59,27 +57,43 @@ class ContextDecisionMaking(TrialEnv):
     ) -> None:
         super().__init__(dt=dt)
 
+
+        # Configuration
+        self.configuration = dict[str, str] = {
+            'context_mode': 'random',
+            'mod1_mode': 'graded',
+            'mod2_mode': 'graded',
+            }
+        if configuration:
+            self.configuration.update(configuration)
+
+        self.context_mode = self.configuration['context_mode']
+        self.mod1_mode = self.configuration['mod1_mode']
+        self.mod2_mode = self.configuration['mod2_mode']
+
+        # Specified relevant modality
+        if relevant_modality not in [0, 1]:
+            msg = "relevant_modality must be 0 or 1."
+            raise ValueError(msg)
+
+        self.relevant_modality = relevant_modality
+
         # Task parameters
         self.dt = dt
         self.use_expl_context = use_expl_context
         self.dim_ring = dim_ring
         self.sigma = sigma / np.sqrt(self.dt)
-        self.context_mode = context_mode
-        self.mod1_mode = mod1_mode
-        self.mod2_mode = mod2_mode
 
         # Trial conditions and spaces setup
         self.cohs_graded: list[int] = [5, 15, 50]
         self.cohs_categorical: list[int] = [0,100]
+        self.cohs_absent: list[int] = [0]
         if use_expl_context:
             self.contexts: list[int] = [0, 1]
             if self.context_mode == 'fixed':
-              self.context = self.rng.choice(self.contexts)
+              self.contexts = [self.relevant_modality]
         else:
-            if impl_context_modality not in [0, 1]:
-                msg = "impl_context_modality must be 0 or 1 when `use_expl_context` is False."
-                raise ValueError(msg)
-            self.contexts = [impl_context_modality]
+            self.contexts = [self.relevant_modality]
         self._setup_spaces()
 
         # Rewards
@@ -146,31 +160,21 @@ class ContextDecisionMaking(TrialEnv):
         ground_truth = self.rng.choice(self.choices)
         other_choice = self.rng.choice(self.choices)
 
-        if self.context_mode == 'fixed':
-          context = self.context
+        context = self.rng.choice(self.contexts)
+
+        if (self.mod1_mode == 'categorical') or (self.mod1_mode == 'graded_relevant' and context == 1):
+            coh_1 = self.rng.choice(self.cohs_categorical)
+        elif self.mod1_mode == 'absent':
+            coh_1 = self.rng.choice(self.cohs_absent)
         else:
-          context = self.rng.choice(self.contexts)
+            coh_1 = self.rng.choice(self.cohs_graded)
 
-        choice_1, choice_2 = ground_truth, other_choice # mod1 is rel
-        self.rel_mod = 0
-        if context == 1: #mod2 is rel
-          choice_1, choice_2 = choice_2, choice_1
-          self.rel_mod = 1
-
-
-        if (self.mod1_mode == 'categorical') or (self.mod1_mode == 'graded_relevant' and self.rel_mod == 1):
-          coh_1 = self.rng.choice(self.cohs_categorical)
-        #elif self.mod1_mode == 'absent':
-        # coh_1 = 0
+        if (self.mod2_mode == 'categorical') or (self.mod2_mode == 'graded_relevant' and context == 0):
+            coh_2 = self.rng.choice(self.cohs_categorical)
+        elif self.mod2_mode == 'absent':
+            coh_2 = self.rng.choice(self.cohs_absent)
         else:
-          coh_1 = self.rng.choice(self.cohs_graded)
-
-        if (self.mod2_mode == 'categorical') or (self.mod2_mode == 'graded_relevant' and self.rel_mod == 0):
-          coh_2 = self.rng.choice(self.cohs_categorical)
-        # elif self.mod2_mode == 'absent':
-        # coh_2 = 0
-        else:
-          coh_2 = self.rng.choice(self.cohs_graded)
+            coh_2 = self.rng.choice(self.cohs_graded)
 
         trial = {
             "ground_truth": ground_truth,
@@ -178,15 +182,20 @@ class ContextDecisionMaking(TrialEnv):
             "context": context,
             "coh_1": coh_1,
             "coh_2": coh_2,
-        }
+                }
         trial.update(kwargs)
+
+        choice_1, choice_2 = ground_truth, other_choice
+
+        if context == 1: #mod2 is rel
+          choice_1, choice_2 = choice_2, choice_1
 
         # Add periods
         periods = ["fixation", "stimulus", "delay", "decision"]
         self.add_period(periods)
 
         # Set observations based on context type
-        self.add_ob(1, period="fixation", where="fixation")
+        self.add_ob(1, period=["fixation", "stimulus", "delay"], where="fixation")
 
         self._set_observations(choice_1, choice_2, coh_1, coh_2)
         # Add context signals for explicit context
@@ -206,14 +215,6 @@ class ContextDecisionMaking(TrialEnv):
 
         stim_mod1 = np.cos(self.theta - stim_theta_1) * (coh_1 / 200) + 0.5
         stim_mod2 = np.cos(self.theta - stim_theta_2) * (coh_2 / 200) + 0.5
-
-        #if self.mod1_mode == 'absent':
-        # stim_theta_1 = 0.0
-        # stim_mod1 = 0.0
-
-        #if self.mod2_mode == 'absent':
-        # stim_theta_2 = 0.0
-        # stim_mod2 = 0.0
 
         # Add observations for each index
         for i in range(self.dim_ring):
