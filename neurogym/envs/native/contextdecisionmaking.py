@@ -189,7 +189,7 @@ class ContextDecisionMaking(TrialEnv):
         self.add_period(periods)
 
         # Set observations based on context type
-        self.add_ob(1, period=["fixation", "stimulus", "delay"], where="fixation")
+        self.add_ob(1, period="fixation", where="fixation")
 
         self._set_observations(choice_1, choice_2, coh_1, coh_2)
         # Add context signals for explicit context
