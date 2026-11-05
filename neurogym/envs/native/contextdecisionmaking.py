@@ -170,6 +170,9 @@ class ContextDecisionMaking(TrialEnv):
         else:
             coh_2 = self.rng.choice(self.cohs_graded)
 
+        coh_1 = kwargs.get("coh_1", coh_1)
+        coh_2 = kwargs.get("coh_2", coh_2)
+
         trial = {
             "ground_truth": ground_truth,
             "other_choice": other_choice,
