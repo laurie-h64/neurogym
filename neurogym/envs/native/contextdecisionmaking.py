@@ -180,6 +180,11 @@ class ContextDecisionMaking(TrialEnv):
             }
         trial.update(kwargs)
 
+        ground_truth = trial["ground_truth"]
+        other_choice = trial["other_choice"]
+        context = trial["context"]
+        coh_1, coh_2 = trial["coh_1"], trial["coh_2"]
+
         choice_1, choice_2 = ground_truth, other_choice
 
         if context == 1: #mod2 is rel
