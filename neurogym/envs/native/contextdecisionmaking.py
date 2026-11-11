@@ -50,7 +50,7 @@ class ContextDecisionMaking(TrialEnv):
         mod2_mode: str = 'random',
         relevant_modality: int = 0,
         dt: int = 100,
-        use_expl_context: bool = False,
+        use_expl_context: bool = True,
         dim_ring: int = 2,
         rewards: dict[str, float] | None = None,
         timing: dict[str, int | TruncExp] | None = None,
