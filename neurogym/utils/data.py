@@ -28,6 +28,7 @@ class Dataset:
 
     def __init__(
         self,
+        seed: int | None = None,
         env: str | gym.Env,
         env_kwargs: dict[str, Any] | None = None,
         batch_size: int = 1,
@@ -49,7 +50,7 @@ class Dataset:
             self.envs = [make(env, **env_kwargs) for _ in range(batch_size)]
         for env_ in self.envs:
             env_.reset()
-        self.seed()
+        self.seed(seed)
 
         env = self.envs[0]
         self.env = env
