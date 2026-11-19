@@ -30,10 +30,10 @@ class Dataset:
         self,
         env: str | gym.Env,
         env_kwargs: dict[str, Any] | None = None,
+        seed: int | None = None,
         batch_size: int = 1,
         seq_len: int | None = None,
         max_batch: int | None = None,
-        seed: int | None = None,
         batch_first: bool = False,
         cache_len: int | None = None,
     ) -> None:
