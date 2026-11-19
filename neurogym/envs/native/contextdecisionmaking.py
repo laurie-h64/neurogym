@@ -99,7 +99,7 @@ class ContextDecisionMaking(TrialEnv):
         self.timing: dict[str, int | TruncExp] = {
             "fixation": 300,
             "stimulus": 750,
-            "delay": TruncExp(600, 300, 3000),
+            "delay": TruncExp(600, 300, 1500),
             "decision": 100,
         }
         if timing:
