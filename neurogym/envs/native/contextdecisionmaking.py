@@ -47,7 +47,7 @@ class ContextDecisionMaking(TrialEnv):
         self,
         context_mode: str = 'random',
         mod1_mode: str = 'graded',
-        mod2_mode: str = 'random',
+        mod2_mode: str = 'graded',
         relevant_modality: int = 0,
         dt: int = 100,
         use_expl_context: bool = True,
